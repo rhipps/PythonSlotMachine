@@ -12,7 +12,7 @@ WINDOW_HEIGHT = 400
 START_IN_FULLSCREEN = False
 
 # Configure the game for play
-theme_folder = os.path.abspath(os.sep) + str(os.path.relpath(".", "/")) + "\\themes\\"
+theme_folder = os.path.abspath(os.sep) + str(os.path.relpath(".", "/")) + "/themes/"
 print "Available Themes to choose from -"
 print os.listdir(theme_folder)
 
