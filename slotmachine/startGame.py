@@ -17,14 +17,18 @@ print "Available Themes to choose from -"
 print os.listdir(theme_folder)
 
 #GAME_THEME = raw_input("Enter Themename: ")
+
+#if GAME_THEME == "":
 GAME_THEME = "prototypesingle"
+
 GAME_THEME = "themes/" + GAME_THEME
 
-start_in_fs = raw_input("Start in full screen? (y / n)")
-if start_in_fs == "y":
-    START_IN_FULLSCREEN = True
+#start_in_fs = raw_input("Start in full screen? (y / n)")
+#if start_in_fs == "y":
+START_IN_FULLSCREEN = True
 
-JACKPOT_VALUE = int(raw_input("Enter Jackpot Value: "))
+#JACKPOT_VALUE = int(raw_input("Enter Jackpot Value: "))
+JACKPOT_VALUE = 100
 
 #######################################################################
 #                       Function Definitions                          #
