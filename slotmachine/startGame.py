@@ -36,7 +36,7 @@ def shift_tile(param_slot_wheel_canvas, param_slot_wheel_tile):
     global TILE_HEIGHT
     slot_tile_y_coord = param_slot_wheel_canvas.coords(param_slot_wheel_tile)[1]
 
-    for row_index in range(0, ROW_COUNT + 1):
+    for row_index in xrange(0, ROW_COUNT + 1):
 
         stop_point = TILE_HEIGHT * row_index
 
@@ -52,7 +52,7 @@ def finish_spin(param_slot_wheel_canvas, param_slot_wheel_tiles, slot_wheel_canv
     min_tile_index = ROW_COUNT * slot_wheel_canvas_index
     max_tile_index = ROW_COUNT + ROW_COUNT * slot_wheel_canvas_index
 
-    for tile_index in range(min_tile_index, max_tile_index):
+    for tile_index in xrange(min_tile_index, max_tile_index):
 
         slot_wheel_tile = param_slot_wheel_tiles[tile_index]
         shift_tile(param_slot_wheel_canvas, slot_wheel_tile)
@@ -71,7 +71,7 @@ def action_button(event):
             if slot_wheel_is_spinning[index]:
                 slot_wheel_is_spinning[index] = False
                 finish_spin(slot_wheel_canvases[index], slot_wheel_tiles, index)
-                for tile_index in range(0, ROW_COUNT):
+                for tile_index in xrange(0, ROW_COUNT):
                     position = int(slot_wheel_canvases[index].coords(slot_wheel_tiles[tile_index])[1] / (window_resize_height / ROW_COUNT))
                     slot_tile_scoring_positions[index*ROW_COUNT + position] = slot_wheel_configuration[index*ROW_COUNT + tile_index]
                 if index == COLUMN_COUNT-1:
@@ -88,11 +88,12 @@ def get_slot_machine_state():
     global COLUMN_COUNT
 
     slot_machine_state = [""] * ROW_COUNT
-    for score_index in range(0, ROW_COUNT):
+    for score_index in xrange(0, ROW_COUNT):
         slot_row = ""
-        for column_index in range(0, COLUMN_COUNT):
-            slot_row += str(slot_tile_scoring_positions[score_index + ROW_COUNT*column_index]) + " "
+        for column_index in xrange(0, COLUMN_COUNT):
+            slot_row = "%s %s" % (slot_row, str(slot_tile_scoring_positions[score_index + ROW_COUNT*column_index]))
         slot_machine_state[score_index] = slot_row
+
     return slot_machine_state
 
 
@@ -192,7 +193,7 @@ for index, image in enumerate(slot_wheel_images):
 
 for index, wheel in enumerate(slot_wheel_canvases):
     slot_wheel_canvases[index] = tkinter.Canvas(window)
-    for image_index in range(0, ROW_COUNT):
+    for image_index in xrange(0, ROW_COUNT):
         slot_wheel_image = slot_wheel_images[index*ROW_COUNT + image_index]
         x_coord = 0
         y_coord = slot_wheel_image.height()*image_index
@@ -225,5 +226,4 @@ while True:
                 for slot_tile_index, slot_tile in enumerate(slot_wheel_tiles):
                     shift_tile(slot_wheel_canvas, slot_tile)
 
-    window.update_idletasks()
     window.update()
