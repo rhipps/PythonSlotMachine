@@ -1,7 +1,5 @@
 import Tkinter as tkinter
 from PIL import Image, ImageTk
-import tkFont
-import os
 
 #######################################################################
 #                       Startup Game Configuration                    #
@@ -9,47 +7,38 @@ import os
 
 WINDOW_WIDTH = 600
 WINDOW_HEIGHT = 400
-START_IN_FULLSCREEN = False
 
 # Configure the game for play
-theme_folder = os.path.abspath(os.sep) + str(os.path.relpath(".", "/")) + "/themes/"
-print "Available Themes to choose from -"
-print os.listdir(theme_folder)
+slotMachineConfig = open("slotmachineconfig", "r")
 
-#GAME_THEME = raw_input("Enter Themename: ")
+GAME_THEME = slotMachineConfig.readline().strip()
+START_IN_FULLSCREEN = slotMachineConfig.readline().strip()
+JACKPOT_VALUE = slotMachineConfig.readline().strip()
 
-#if GAME_THEME == "":
-GAME_THEME = "prototypesingle"
+if GAME_THEME == "":
+    GAME_THEME = "default"
 
 GAME_THEME = "themes/" + GAME_THEME
-
-#start_in_fs = raw_input("Start in full screen? (y / n)")
-#if start_in_fs == "y":
-START_IN_FULLSCREEN = True
-
-#JACKPOT_VALUE = int(raw_input("Enter Jackpot Value: "))
-JACKPOT_VALUE = 100
 
 #######################################################################
 #                       Function Definitions                          #
 #######################################################################
 
 
-def fullscreentoggle(event):
+def toggle_fullscreen(event):
     if window.attributes("-fullscreen"):
         window.attributes("-fullscreen", False)
     else:
         window.attributes("-fullscreen", True)
 
 
-def spin(param_slot_wheel_canvas, param_slot_wheel_tile, param_slot_wheel_canvas_index):
-
-    tile_height = window_resize_height / ROW_COUNT
+def shift_tile(param_slot_wheel_canvas, param_slot_wheel_tile):
+    global TILE_HEIGHT
     slot_tile_y_coord = param_slot_wheel_canvas.coords(param_slot_wheel_tile)[1]
 
     for row_index in range(0, ROW_COUNT + 1):
 
-        stop_point = tile_height * row_index
+        stop_point = TILE_HEIGHT * row_index
 
         if slot_tile_y_coord < stop_point:
             param_slot_wheel_canvas.coords(param_slot_wheel_tile, (0, stop_point))
@@ -58,61 +47,56 @@ def spin(param_slot_wheel_canvas, param_slot_wheel_tile, param_slot_wheel_canvas
             break
 
 
-def finishspin(param_slot_wheel_canvas, param_slot_wheel_tiles, slot_wheel_canvas_index):
+def finish_spin(param_slot_wheel_canvas, param_slot_wheel_tiles, slot_wheel_canvas_index):
 
     min_tile_index = ROW_COUNT * slot_wheel_canvas_index
     max_tile_index = ROW_COUNT + ROW_COUNT * slot_wheel_canvas_index
-    tile_height = window_resize_height / ROW_COUNT
 
     for tile_index in range(min_tile_index, max_tile_index):
 
-        slot_tile_y_coord = param_slot_wheel_canvas.coords(param_slot_wheel_tiles[tile_index])[1]
-
-        for row_index in range(0, ROW_COUNT+1):
-
-            stop_point = tile_height * row_index
-
-            if slot_tile_y_coord < stop_point:
-                param_slot_wheel_canvas.coords(param_slot_wheel_tiles[tile_index], (0, stop_point))
-                if param_slot_wheel_canvas.coords(param_slot_wheel_tiles[tile_index])[1] >= window_resize_height:
-                    param_slot_wheel_canvas.coords(param_slot_wheel_tiles[tile_index], (0, 0))
-                break
+        slot_wheel_tile = param_slot_wheel_tiles[tile_index]
+        shift_tile(param_slot_wheel_canvas, slot_wheel_tile)
 
 
-def slotbuttonaction(event):
+def action_button(event):
 
     global slot_wheel_is_spinning
     global slot_wheel_images
-    global slot_wheel_canvas
+    global slot_wheel_canvases
     global slot_wheel_tiles
+    global window_resize_height
 
     if True in slot_wheel_is_spinning:
         for index, slot_wheel_status in enumerate(slot_wheel_is_spinning):
             if slot_wheel_is_spinning[index]:
                 slot_wheel_is_spinning[index] = False
-                finishspin(slot_wheel_canvas[index], slot_wheel_tiles, index)
+                finish_spin(slot_wheel_canvases[index], slot_wheel_tiles, index)
                 for tile_index in range(0, ROW_COUNT):
-                    position = int(slot_wheel_canvas[index].coords(slot_wheel_tiles[tile_index])[1] / (window_resize_height / ROW_COUNT))
+                    position = int(slot_wheel_canvases[index].coords(slot_wheel_tiles[tile_index])[1] / (window_resize_height / ROW_COUNT))
                     slot_tile_scoring_positions[index*ROW_COUNT + position] = slot_wheel_configuration[index*ROW_COUNT + tile_index]
                 if index == COLUMN_COUNT-1:
-                    scoregame()
+                    score_game()
                 return
     else:
         for index, slot_wheel_status in enumerate(slot_wheel_is_spinning):
             slot_wheel_is_spinning[index] = True
 
 
-def getboardstate():
-    board_state = [""] * ROW_COUNT
+def get_slot_machine_state():
+
+    global ROW_COUNT
+    global COLUMN_COUNT
+
+    slot_machine_state = [""] * ROW_COUNT
     for score_index in range(0, ROW_COUNT):
         slot_row = ""
         for column_index in range(0, COLUMN_COUNT):
             slot_row += str(slot_tile_scoring_positions[score_index + ROW_COUNT*column_index]) + " "
-        board_state[score_index] = slot_row
-    return board_state
+        slot_machine_state[score_index] = slot_row
+    return slot_machine_state
 
 
-def scoregame():
+def score_game():
 
     global JACKPOT_VALUE
     cash_out = 0
@@ -124,7 +108,7 @@ def scoregame():
     double_tier_one_payout = ["2 2 2"]
     double_tier_two_payout = ["2 2 2 2"]
 
-    final_state = getboardstate()
+    final_state = get_slot_machine_state()
     for score_row in final_state:
         found_winning_payout = False
         if jackpot in score_row:
@@ -160,8 +144,8 @@ window.configure(background="black")
 window.attributes("-fullscreen", START_IN_FULLSCREEN)
 
 #Control bindings
-window.bind("<Escape>", fullscreentoggle)
-window.bind("<space>", slotbuttonaction)
+window.bind("<Escape>", toggle_fullscreen)
+window.bind("<space>", action_button)
 
 #Slot machine window layout
 window.rowconfigure(0, weight=1, uniform="rows")
@@ -182,7 +166,7 @@ ROW_COUNT = 4
 
 slot_machine_spinning = True
 slot_wheel_is_spinning = [False] * COLUMN_COUNT
-slot_wheel_canvas = [None] * COLUMN_COUNT
+slot_wheel_canvases = [None] * COLUMN_COUNT
 slot_wheel_images = [None] * COLUMN_COUNT * ROW_COUNT
 slot_wheel_tiles = [None] * COLUMN_COUNT * ROW_COUNT
 slot_wheel_configuration = [1, 2, 3, 4, 1, 4, 2, 3, 1, 4, 3, 2, 1, 2, 3, 4, 1, 3, 4, 3]
@@ -195,6 +179,7 @@ else:
     window_resize_width = WINDOW_WIDTH
     window_resize_height = WINDOW_HEIGHT
 
+TILE_HEIGHT = window_resize_height / ROW_COUNT
 #######################################################################
 #                       Slot Wheel Setup                              #
 #######################################################################
@@ -205,15 +190,15 @@ for index, image in enumerate(slot_wheel_images):
 for index, image in enumerate(slot_wheel_images):
     slot_wheel_images[index] = ImageTk.PhotoImage(image.resize((window_resize_width/(COLUMN_COUNT+2), window_resize_height/ROW_COUNT), Image.ANTIALIAS))
 
-for index, wheel in enumerate(slot_wheel_canvas):
-    slot_wheel_canvas[index] = tkinter.Canvas(window)
+for index, wheel in enumerate(slot_wheel_canvases):
+    slot_wheel_canvases[index] = tkinter.Canvas(window)
     for image_index in range(0, ROW_COUNT):
         slot_wheel_image = slot_wheel_images[index*ROW_COUNT + image_index]
         x_coord = 0
         y_coord = slot_wheel_image.height()*image_index
-        slot_wheel_tiles[index*ROW_COUNT + image_index] = slot_wheel_canvas[index].create_image(x_coord, y_coord, image=slot_wheel_image, anchor="nw")
+        slot_wheel_tiles[index*ROW_COUNT + image_index] = slot_wheel_canvases[index].create_image(x_coord, y_coord, image=slot_wheel_image, anchor="nw")
 
-    slot_wheel_canvas[index].grid(row=0, column=index+1, sticky="nsew")
+    slot_wheel_canvases[index].grid(row=0, column=index + 1, sticky="nsew")
 
 
 #######################################################################
@@ -235,10 +220,10 @@ while True:
 
     # Go through each slot wheel and tile and move accordingly
     if slot_machine_spinning:
-        for canvas_index, slot in enumerate(slot_wheel_canvas):
-            if slot_wheel_is_spinning[canvas_index]:
-                for tile_index, tile in enumerate(slot_wheel_tiles):
-                    spin(slot, tile, canvas_index)
+        for slot_wheel_canvas_index, slot_wheel_canvas in enumerate(slot_wheel_canvases):
+            if slot_wheel_is_spinning[slot_wheel_canvas_index]:
+                for slot_tile_index, slot_tile in enumerate(slot_wheel_tiles):
+                    shift_tile(slot_wheel_canvas, slot_tile)
 
     window.update_idletasks()
     window.update()
