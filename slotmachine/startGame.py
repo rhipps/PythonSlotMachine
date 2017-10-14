@@ -32,19 +32,23 @@ def toggle_fullscreen(event):
         window.attributes("-fullscreen", True)
 
 
-def shift_tile(param_slot_wheel_canvas, param_slot_wheel_tile):
+def shift_slot_tiles(param_slot_wheel_canvas, param_slot_wheel_tiles, param_min_tile_index, param_max_tile_index):
+
     global TILE_HEIGHT
-    slot_tile_y_coord = param_slot_wheel_canvas.coords(param_slot_wheel_tile)[1]
 
-    for row_index in xrange(0, ROW_COUNT + 1):
+    for tile_index in xrange(param_min_tile_index, param_max_tile_index):
+        slot_wheel_tile = param_slot_wheel_tiles[tile_index]
+        slot_tile_y_coord = param_slot_wheel_canvas.coords(slot_wheel_tile)[1]
 
-        stop_point = TILE_HEIGHT * row_index
+        for row_index in xrange(0, ROW_COUNT + 1):
 
-        if slot_tile_y_coord < stop_point:
-            param_slot_wheel_canvas.coords(param_slot_wheel_tile, (0, stop_point))
-            if param_slot_wheel_canvas.coords(param_slot_wheel_tile)[1] >= window_resize_height:
-                param_slot_wheel_canvas.coords(param_slot_wheel_tile, (0, 0))
-            break
+            stop_point = TILE_HEIGHT * row_index
+
+            if slot_tile_y_coord < stop_point:
+                param_slot_wheel_canvas.coords(slot_wheel_tile, (0, stop_point))
+                if param_slot_wheel_canvas.coords(slot_wheel_tile)[1] >= window_resize_height:
+                    param_slot_wheel_canvas.coords(slot_wheel_tile, (0, 0))
+                break
 
 
 def finish_spin(param_slot_wheel_canvas, param_slot_wheel_tiles, slot_wheel_canvas_index):
@@ -52,10 +56,7 @@ def finish_spin(param_slot_wheel_canvas, param_slot_wheel_tiles, slot_wheel_canv
     min_tile_index = ROW_COUNT * slot_wheel_canvas_index
     max_tile_index = ROW_COUNT + ROW_COUNT * slot_wheel_canvas_index
 
-    for tile_index in xrange(min_tile_index, max_tile_index):
-
-        slot_wheel_tile = param_slot_wheel_tiles[tile_index]
-        shift_tile(param_slot_wheel_canvas, slot_wheel_tile)
+    shift_slot_tiles(param_slot_wheel_canvas, param_slot_wheel_tiles, min_tile_index, max_tile_index)
 
 
 def action_button(event):
@@ -223,7 +224,8 @@ while True:
     if slot_machine_spinning:
         for slot_wheel_canvas_index, slot_wheel_canvas in enumerate(slot_wheel_canvases):
             if slot_wheel_is_spinning[slot_wheel_canvas_index]:
-                for slot_tile_index, slot_tile in enumerate(slot_wheel_tiles):
-                    shift_tile(slot_wheel_canvas, slot_tile)
+                min_tile_index = ROW_COUNT * slot_wheel_canvas_index
+                max_tile_index = ROW_COUNT + ROW_COUNT * slot_wheel_canvas_index
+                shift_slot_tiles(slot_wheel_canvas, slot_wheel_tiles, min_tile_index, max_tile_index)
 
     window.update()
